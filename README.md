@@ -145,4 +145,4 @@ Paste the table from `results_summary.md` here once you have run it:
 
 ## Author
 
-Your Name, Predictive Analytics course project (replace with your name, roll number and college)
+Prakriti Rajput, Predictive Analytics project
