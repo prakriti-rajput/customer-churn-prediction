@@ -14,17 +14,12 @@
 - Internet service: 'Fiber optic' customers churn the most (41.9%), 'No' customers churn the least (7.4%), a gap of 34.5 percentage points.
 - Correlation: 'tenure' has the strongest linear relationship with churn (-0.35). A negative value means churn becomes less likely as the feature increases. Correlation only covers numeric columns and straight-line relationships, so the models in the next sections also use the categorical columns.
 
-## Model comparison (test data)
+## Model evaluation (test data)
 
 | Model | Accuracy | Precision (Churn) | Recall (Churn) | F1-score (Churn) |
 |---|---|---|---|---|
 | Logistic Regression | 0.7381 | 0.5043 | 0.7834 | 0.6136 |
-| Decision Tree | 0.7559 | 0.5279 | 0.7594 | 0.6228 |
 
 ## Conclusion
-- Based on the F1-score for the churn class, Decision Tree performs better (0.623 vs 0.614).
-- However, Logistic Regression has the higher recall (0.783), so it catches more churners, while Decision Tree gives a better balance between recall and precision.
-
-## Top features
-- Logistic Regression: tenure, Contract_Two year, MonthlyCharges
-- Decision Tree: Contract_Month-to-month, tenure, InternetService_Fiber optic
+- Logistic Regression was trained and evaluated on the test data.
+- Accuracy, precision, recall and F1-score were used to measure performance.

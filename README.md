@@ -1,6 +1,6 @@
 # Customer Churn Prediction Using Machine Learning
 
-A beginner-friendly **Predictive Analytics** project that predicts which telecom customers are likely to leave (churn), using **Logistic Regression** and a **Decision Tree** on the IBM Telco Customer Churn dataset.
+A beginner-friendly **Predictive Analytics** project that predicts which telecom customers are likely to leave (churn), using **Logistic Regression** on the IBM Telco Customer Churn dataset.
 
 ---
 
@@ -16,7 +16,7 @@ Given a customer's profile (tenure, contract type, internet service, monthly cha
 
 - Clean and prepare the Telco customer data without data leakage.
 - Explore the data with graphs to understand who churns.
-- Train **Logistic Regression** and **Decision Tree** models with scikit-learn.
+- Train **Logistic Regression** model with scikit-learn.
 - Evaluate them with Accuracy, Precision, Recall, F1-score and Confusion Matrix, focusing on the **churn class**.
 - Identify the most important features and suggest improvements.
 

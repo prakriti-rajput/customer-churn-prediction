@@ -9,7 +9,7 @@ def display(x):
 
 # # Customer Churn Prediction Using Machine Learning
 # 
-# **Subject:** Predictive Analytics  |  **Dataset:** IBM Telco Customer Churn  |  **Models:** Logistic Regression and Decision Tree
+# **Subject:** Predictive Analytics  |  **Dataset:** IBM Telco Customer Churn  |  **Model:** Logistic Regression
 # 
 # ---
 # 
@@ -25,8 +25,8 @@ def display(x):
 # | 2 | Load the dataset | Read the CSV and take a first look |
 # | 3 | Data preprocessing | Clean data, encode text columns, split 80% train / 20% test |
 # | 4 | Exploratory Data Analysis | Seven graphs, each with an explanation |
-# | 5 | Train the models | Logistic Regression and Decision Tree |
-# | 6 | Evaluate the models | Accuracy, Precision, Recall, F1-score, Confusion Matrix |
+# | 5 | Train the model | Logistic Regression |
+# | 6 | Evaluate the model | Accuracy, Precision, Recall, F1-score, Confusion Matrix |
 # | 7 | Additional analysis | Important features and how to interpret predictions |
 # | 8 | Findings and conclusion | Summary, improvements and future scope |
 # 
@@ -37,9 +37,9 @@ def display(x):
 # 
 # * **pandas / numpy**: handle tables and numbers
 # * **matplotlib / seaborn**: draw graphs
-# * **scikit-learn**: preprocessing, machine learning models and evaluation metrics
+# * **scikit-learn**: preprocessing, machine learning model and evaluation metrics
 # 
-# `RANDOM_STATE = 42` makes the train/test split and the models give the **same result every time** you run the notebook.
+# `RANDOM_STATE = 42` makes the train/test split and the model give the **same result every time** you run the notebook.
 
 import os
 import warnings
@@ -55,7 +55,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import (accuracy_score, precision_score, recall_score,
                              f1_score, confusion_matrix, classification_report,
                              ConfusionMatrixDisplay)
@@ -153,7 +152,7 @@ display(df.describe())
 
 # ## 3. Data Preprocessing
 # 
-# Machine learning models only understand clean numbers. In this section we:
+# Machine learning model only understand clean numbers. In this section we:
 # 
 # 1. Check size, missing values and duplicates
 # 2. Remove the useless `customerID` column
@@ -259,15 +258,9 @@ print(f"\nChurn rate in training data: {y_train.mean():.2%}")
 print(f"Churn rate in testing data : {y_test.mean():.2%}")
 
 # ### 3.8 Encoding categorical variables and scaling numeric variables
-# 
-# * **One-hot encoding** turns a text column such as `Contract` (Month-to-month / One year / Two year) into separate
-#   0/1 columns. Yes/No columns become a single 0/1 column.
-# * **Imputation** fills the missing `TotalCharges` values with the training median.
-# * **Scaling (`StandardScaler`)** puts numeric columns on a similar range. Logistic Regression **needs** this
-#   because it is sensitive to the size of numbers. A Decision Tree does **not** need it, so we skip it there.
-# 
+
 # `build_preprocessor()` creates this recipe. Below we run it on the training data just to *see* what the encoded data looks like.
-# The real models in section 5 use their own copy inside a `Pipeline`.
+# The real model in section 5 use their own copy inside a `Pipeline`.
 
 # Split the columns into numeric and text (categorical) columns
 numeric_features = [col for col in X_train.columns if pd.api.types.is_numeric_dtype(X_train[col])]
@@ -521,49 +514,27 @@ sentence = (f"Observation: '{strongest}' has the strongest linear relationship w
 print("\n" + sentence)
 eda_findings.append(sentence.replace("Observation: ", "Correlation: "))
 
-# ## 5. Machine Learning Models
+# ## 5. Machine Learning Model
 # 
-# We train **two** algorithms:
 # 
 # ### Logistic Regression
 # Calculates a **probability of churn** by giving each feature a weight (coefficient). Simple, fast and easy to explain.
 # Positive weight = pushes towards churn, negative weight = pushes towards staying.
-# 
-# ### Decision Tree Classifier
-# Asks a series of **yes/no questions** (for example *"Is the contract month-to-month?"*) and follows the branches to a decision. Easy
-# to visualise and can capture non-straight-line patterns.
-# 
-# ### Settings used (and why)
-# | Setting | Reason |
-# |---|---|
-# | `class_weight="balanced"` | Churners are the minority. This makes the model pay more attention to them, which improves **recall** for churn. |
-# | `max_iter=1000` (Logistic Regression) | Gives the algorithm enough steps to finish learning. |
-# | `max_depth=5`, `min_samples_leaf=20` (Decision Tree) | Stops the tree growing too deep. An unlimited tree memorises the training data (*overfitting*). |
-# | `random_state=42` | Same result every run. |
-# 
-# Each model is a **Pipeline** = preprocessing + model, so the preprocessing is **fitted only on training data** when we call `.fit()`.
 
+# ### Settings used (and why)
 # Logistic Regression: needs scaled numbers
 log_reg_model = Pipeline([
     ("preprocess", build_preprocessor(scale_numeric=True)),
     ("model", LogisticRegression(max_iter=1000, class_weight="balanced", random_state=RANDOM_STATE)),
 ])
 
-# Decision Tree: does not need scaling
-decision_tree_model = Pipeline([
-    ("preprocess", build_preprocessor(scale_numeric=False)),
-    ("model", DecisionTreeClassifier(max_depth=5, min_samples_leaf=20, class_weight="balanced",
-                                     random_state=RANDOM_STATE)),
-])
-
-# Train both models on the TRAINING data only
+# Train both model on the TRAINING data only
 log_reg_model.fit(X_train, y_train)
-decision_tree_model.fit(X_train, y_train)
-print("Both models trained successfully.")
+print("Logistic Regression model trained successfully.")
 
 # ## 6. Model Evaluation
 # 
-# We now test both models on the **20% test data** that they have never seen.
+# We now test both model on the **20% test data** that they have never seen.
 # 
 # ### What each metric means (for the *churn* class)
 # | Metric | Simple meaning |
@@ -595,13 +566,15 @@ def evaluate_model(model_name, model):
     return scores, predictions
 
 
-log_reg_scores, log_reg_predictions = evaluate_model("Logistic Regression", log_reg_model)
-tree_scores, tree_predictions = evaluate_model("Decision Tree", decision_tree_model)
-
-comparison = pd.DataFrame([log_reg_scores, tree_scores]).round(4)
-comparison.to_csv(os.path.join(GRAPHS_DIR, "model_comparison.csv"), index=False)
-
-print("MODEL COMPARISON (evaluated on the 20% test data)")
+log_reg_scores, log_reg_predictions = evaluate_model(
+    "Logistic Regression", log_reg_model
+)
+comparison = pd.DataFrame([log_reg_scores]).round(4)
+comparison.to_csv(
+    os.path.join(GRAPHS_DIR, "model_comparison.csv"),
+    index=False
+)
+print("MODEL EVALUATION")
 display(comparison)
 
 # Detailed classification reports
@@ -610,96 +583,59 @@ print("LOGISTIC REGRESSION")
 print("=" * 60)
 print(classification_report(y_test, log_reg_predictions, target_names=["No Churn", "Churn"], zero_division=0))
 
-print("=" * 60)
-print("DECISION TREE")
-print("=" * 60)
-print(classification_report(y_test, tree_predictions, target_names=["No Churn", "Churn"], zero_division=0))
-
 # Confusion matrices side by side
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-for ax, (name, predictions) in zip(axes, [("Logistic Regression", log_reg_predictions),
-                                          ("Decision Tree", tree_predictions)]):
-    ConfusionMatrixDisplay.from_predictions(
-        y_test, predictions, display_labels=["No Churn", "Churn"],
-        cmap="Blues", colorbar=False, ax=ax, values_format="d")
-    ax.set_title(f"Confusion Matrix: {name}", fontsize=13, fontweight="bold")
-    ax.set_xlabel("Predicted label")
-    ax.set_ylabel("Actual label")
-    ax.grid(False)
-finish_plot("08_confusion_matrices.png")
+fig, ax = plt.subplots(figsize=(6, 5))
+
+ConfusionMatrixDisplay.from_predictions(
+    y_test,
+    log_reg_predictions,
+    display_labels=["No Churn", "Churn"],
+    cmap="Blues",
+    colorbar=False,
+    ax=ax,
+    values_format="d"
+)
+
+ax.set_title("Confusion Matrix: Logistic Regression")
+ax.set_xlabel("Predicted label")
+ax.set_ylabel("Actual label")
+ax.grid(False)
+
+finish_plot("08_confusion_matrix.png")
 
 # Plain-language reading of each matrix
-for name, predictions in [("Logistic Regression", log_reg_predictions), ("Decision Tree", tree_predictions)]:
+for name, predictions in [("Logistic Regression", log_reg_predictions)]:
     tn, fp, fn, tp = confusion_matrix(y_test, predictions).ravel()
     print(f"{name}: caught {tp} of {tp + fn} real churners (missed {fn}); "
           f"raised {fp} false alarms among {tn + fp} loyal customers.")
 
-# Bar chart comparing the metrics of both models
-metrics_to_plot = ["Accuracy", "Precision (Churn)", "Recall (Churn)", "F1-score (Churn)"]
-plot_data = comparison.melt(id_vars="Model", value_vars=metrics_to_plot, var_name="Metric", value_name="Score")
-
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.barplot(data=plot_data, x="Metric", y="Score", hue="Model", palette=["#2E86AB", "#F2A541"], ax=ax)
-for container in ax.containers:
-    ax.bar_label(container, fmt="%.2f", fontsize=10, padding=3)
-ax.set_title("Model Performance Comparison", fontsize=14, fontweight="bold")
-ax.set_xlabel("Evaluation metric")
-ax.set_ylabel("Score (0 to 1)")
-ax.set_ylim(0, 1.1)
-ax.legend(title="Model", loc="lower right")
-finish_plot("09_model_comparison.png")
-
 # ### Which model is better, and why?
-# The cell below compares the two models **using the real numbers** and writes the conclusion automatically.
-
-scores = comparison.set_index("Model")
-best_accuracy = scores["Accuracy"].idxmax()
-best_recall = scores["Recall (Churn)"].idxmax()
-best_precision = scores["Precision (Churn)"].idxmax()
-best_f1 = scores["F1-score (Churn)"].idxmax()
-
-print(f"Highest Accuracy          : {best_accuracy}")
-print(f"Highest Precision (Churn) : {best_precision}")
-print(f"Highest Recall (Churn)    : {best_recall}")
-print(f"Highest F1-score (Churn)  : {best_f1}")
-
-other_model = [m for m in scores.index if m != best_f1][0]
-verdict_lines = []
-verdict_lines.append(
-    f"Based on the F1-score for the churn class, {best_f1} performs better "
-    f"({scores.loc[best_f1, 'F1-score (Churn)']:.3f} vs {scores.loc[other_model, 'F1-score (Churn)']:.3f}).")
-if best_recall == best_f1:
-    verdict_lines.append(
-        f"It also catches more real churners (recall {scores.loc[best_f1, 'Recall (Churn)']:.3f} vs "
-        f"{scores.loc[other_model, 'Recall (Churn)']:.3f}), which is the most important goal in churn prediction.")
-else:
-    verdict_lines.append(
-        f"However, {best_recall} has the higher recall ({scores.loc[best_recall, 'Recall (Churn)']:.3f}), "
-        f"so it catches more churners, while {best_f1} gives a better balance between recall and precision.")
-if best_accuracy != best_f1:
-    verdict_lines.append(
-        f"Note that {best_accuracy} has the higher accuracy, but accuracy alone is not reliable because "
-        "most customers do not churn.")
+verdict_lines = [
+    "Logistic Regression was trained and evaluated on the test data.",
+    "Accuracy, precision, recall and F1-score were used to measure performance."
+]
 
 print("\nCONCLUSION")
 for line in verdict_lines:
     print(" -", line)
 
 # Check for overfitting: compare accuracy on training data and test data
-print("\nOverfitting check (accuracy on training data vs test data):")
-for name, model in [("Logistic Regression", log_reg_model), ("Decision Tree", decision_tree_model)]:
-    train_acc = accuracy_score(y_train, model.predict(X_train))
-    test_acc = accuracy_score(y_test, model.predict(X_test))
-    print(f"   {name:<20s}: train {train_acc:.3f} | test {test_acc:.3f} | gap {train_acc - test_acc:+.3f}")
+print("\nOverfitting check:")
+
+train_acc = accuracy_score(
+    y_train, log_reg_model.predict(X_train)
+)
+
+test_acc = accuracy_score(
+    y_test, log_reg_model.predict(X_test)
+)
+
+print(f"Logistic Regression: train {train_acc:.3f} | test {test_acc:.3f}")
 
 # **How to explain this in your viva**
 # 
 # * **Logistic Regression** learns one straight-line rule using all features together. It is stable, rarely overfits and its
 #   weights are easy to explain.
-# * **Decision Tree** can capture rules like *"month-to-month AND short tenure AND high bill"* that a straight line may miss,
-#   but it can also memorise the training data. We limited its depth to reduce that risk.
-# * The cell above decides the winner **only from the test results**, not from assumptions. If you change a setting such as
-#   `max_depth`, re-run the notebook and the conclusion updates itself.
 
 # ## 7. Additional Analysis
 # 
@@ -735,40 +671,6 @@ print("Top 5 features that INCREASE churn risk:")
 display(coef_table.head(5).round(3).reset_index(drop=True))
 print("Top 5 features that DECREASE churn risk:")
 display(coef_table.tail(5).sort_values("Coefficient").round(3).reset_index(drop=True))
-
-# **Decision Tree feature importance.** Shows how much each feature helped the tree make good splits
-# (values add up to 1; higher = more important). Unlike coefficients, importance does **not** show direction.
-
-tree_feature_names = decision_tree_model.named_steps["preprocess"].get_feature_names_out()
-tree_importances = decision_tree_model.named_steps["model"].feature_importances_
-
-importance_table = (pd.DataFrame({"Feature": tree_feature_names, "Importance": tree_importances})
-                    .sort_values("Importance", ascending=False))
-top_tree_features = importance_table.head(10).sort_values("Importance")
-
-fig, ax = plt.subplots(figsize=(9, 5.5))
-ax.barh(top_tree_features["Feature"], top_tree_features["Importance"], color="#F2A541")
-ax.set_title("Decision Tree: Top 10 Most Important Features", fontsize=14, fontweight="bold")
-ax.set_xlabel("Importance score")
-ax.set_ylabel("Feature")
-finish_plot("11_decision_tree_feature_importance.png")
-
-display(importance_table.head(10).round(4).reset_index(drop=True))
-
-top3_tree = ", ".join(importance_table["Feature"].head(3))
-top3_lr = ", ".join(coef_table.reindex(coef_table["Coefficient"].abs().sort_values(ascending=False).index)["Feature"].head(3))
-print(f"Top 3 features for the Decision Tree      : {top3_tree}")
-print(f"Top 3 features (by size) for Logistic Reg.: {top3_lr}")
-
-# **The first levels of the decision tree.** Reading from the top: each box shows the question asked, how many customers reach it,
-# and the majority class. This is the easiest way to *show* how the model thinks.
-
-fig, ax = plt.subplots(figsize=(20, 9))
-plot_tree(decision_tree_model.named_steps["model"], max_depth=3,
-          feature_names=list(tree_feature_names), class_names=["No Churn", "Churn"],
-          filled=True, rounded=True, fontsize=8, ax=ax)
-ax.set_title("Decision Tree Structure (first 3 levels)", fontsize=15, fontweight="bold")
-finish_plot("12_decision_tree_structure.png")
 
 # ### 7.2 Interpretation of model predictions
 # A model can give a **churn probability** for every customer. A retention team could contact the customers with the
@@ -815,10 +717,6 @@ display(comparison)
 for line in verdict_lines:
     print(" -", line)
 
-print("\nMost influential features:")
-print(" - Logistic Regression (largest coefficients):", top3_lr)
-print(" - Decision Tree (highest importance)        :", top3_tree)
-
 # Save a text summary of this run next to the graphs (handy for the README / report)
 summary_lines = ["# Results summary (auto-generated by the notebook)", "",
                  f"- Customers: {rows}, original columns: {columns}",
@@ -826,40 +724,35 @@ summary_lines = ["# Results summary (auto-generated by the notebook)", "",
                  f"- Overall churn rate: {y.mean():.1%}", "", "## EDA findings"]
 summary_lines += [f"- {finding}" for finding in eda_findings]
 
-summary_lines += ["", "## Model comparison (test data)", "",
+summary_lines += ["", "## Model evaluation (test data)", "",
                   "| " + " | ".join(comparison.columns) + " |",
                   "|" + "---|" * len(comparison.columns)]
 for _, row in comparison.iterrows():
     summary_lines.append("| " + " | ".join(str(value) for value in row.values) + " |")
 
 summary_lines += ["", "## Conclusion"] + [f"- {line}" for line in verdict_lines]
-summary_lines += ["", "## Top features",
-                  f"- Logistic Regression: {top3_lr}",
-                  f"- Decision Tree: {top3_tree}"]
-
 with open(os.path.join(GRAPHS_DIR, "results_summary.md"), "w", encoding="utf-8") as summary_file:
     summary_file.write("\n".join(summary_lines))
 print("Saved:", os.path.join(GRAPHS_DIR, "results_summary.md"))
 
 # ### Conclusion
-# In this project we cleaned the Telco customer data, explored it with seven graphs, and trained **Logistic Regression** and a
-# **Decision Tree** to predict churn. The comparison table and the automatic verdict in section 6 show which model
+# In this project we cleaned the Telco customer data, explored it with seven graphs, and trained **Logistic Regression**
+# to predict churn. The comparison table and the automatic verdict in section 6 show which model
 # detects churners better; the EDA and feature-importance sections show **which customer characteristics are linked to churn**
 # (contract type, tenure, monthly charges, internet service and so on). A company can use these ideas to
 # target retention offers at the customers with the highest predicted risk.
 # 
 # ### Limitations
 # * Only one dataset from one company, so results may not transfer to other businesses.
-# * Only two simple models with limited tuning.
+# * Only simple model with limited tuning.
 # * The data is a single snapshot: it does not show how behaviour changes over time.
 # * Correlation is not causation. A feature linked to churn is not necessarily the *reason* for churn.
 # 
 # ### Possible improvements and future scope
 # 1. **Hyper-parameter tuning** with `GridSearchCV` and **cross-validation** for more reliable scores.
 # 2. **More models:** Random Forest, Gradient Boosting, XGBoost (still beginner-friendly in scikit-learn).
-# 3. **Handle class imbalance** with SMOTE or by tuning the **decision threshold** (not always 0.5) to trade precision for recall.
-# 4. **Feature engineering:** tenure groups, number of subscribed services, average monthly spend.
-# 5. **Model explainability** with SHAP values.
-# 6. **Cost-based evaluation:** include the real cost of a lost customer vs. a retention offer.
-# 7. **Deployment:** wrap the trained pipeline in a small **Streamlit** app where a manager enters customer details and gets a churn risk.
-# 8. **Live data:** retrain regularly and track the model over time.
+# 3. **Feature engineering:** tenure groups, number of subscribed services, average monthly spend.
+# 4. **Model explainability** with SHAP values.
+# 5. **Cost-based evaluation:** include the real cost of a lost customer vs. a retention offer.
+# 6. **Deployment:** wrap the trained pipeline in a small **Streamlit** app where a manager enters customer details and gets a churn risk.
+# 7. **Live data:** retrain regularly and track the model over time.
